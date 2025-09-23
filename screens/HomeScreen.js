@@ -1,5 +1,5 @@
-import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { StyleSheet, ScrollView } from "react-native";
+
 import MoodOptions from "../components/MoodOptions";
 
 const moods = [
@@ -16,6 +16,11 @@ const moods = [
 ];
 
 const HomeScreen = ({ navigation }) => {
+  const handleContinue = () => {
+    // Optionally, you can set a flag in navigation params or context to indicate guest mode
+    // For now, just allow navigation to mood selection as usual
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <MoodOptions moods={moods} navigation={navigation} />
