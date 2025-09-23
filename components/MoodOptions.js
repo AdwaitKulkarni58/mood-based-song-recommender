@@ -21,7 +21,6 @@ const styles = StyleSheet.create({
   optionsContainer: {
     width: "100%",
     alignItems: "center",
-    display: "flex",
   },
   button: {
     backgroundColor: "#114B5F",
