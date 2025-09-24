@@ -1,13 +1,27 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 8888;
 
+// Connect to MongoDB
+mongoose.connect(
+  process.env.MONGO_URI || "mongodb://localhost:27017/moodsong",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+);
+
 app.use(cors());
 app.use(express.json());
+
+// Auth and playlist routes
+app.use("/api/auth", require("./auth"));
+app.use("/api/playlists", require("./playlists"));
 
 async function getSpotifyAppToken() {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
@@ -61,13 +75,11 @@ app.get("/api/recommendations", async (req, res) => {
     }
     res.json({ tracks });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        error: "Failed to fetch playlist tracks",
-        details: err.message,
-        spotify: err.response?.data,
-      });
+    res.status(500).json({
+      error: "Failed to fetch playlist tracks",
+      details: err.message,
+      spotify: err.response?.data,
+    });
   }
 });
 

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Alert } from "react-native";
+import { getToken } from "../utils/auth";
 import {
   View,
   Text,
@@ -11,7 +13,9 @@ import {
 
 import { BACKEND_URL } from "../config";
 
-const ResultsScreen = ({ route }) => {
+import PlaylistSelectModal from "./PlaylistSelectModal";
+
+const ResultsScreen = ({ route, navigation }) => {
   const { mood } = route.params || {};
   const moodKey = mood?.value || mood?.toLowerCase();
   const [tracks, setTracks] = useState([]);
@@ -19,13 +23,15 @@ const ResultsScreen = ({ route }) => {
   const [error, setError] = useState(null);
   const [visibleCount, setVisibleCount] = useState(10); // For pagination
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [selectedSong, setSelectedSong] = useState(null);
+
   useEffect(() => {
     setLoading(true);
     setError(null);
     setVisibleCount(10); // Reset pagination on mood change
-    fetch(
-      `${BACKEND_URL}/api/recommendations?mood=${moodKey}`
-    )
+    fetch(`${BACKEND_URL}/api/recommendations?mood=${moodKey}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch recommendations");
         return res.json();
@@ -38,6 +44,8 @@ const ResultsScreen = ({ route }) => {
         setError(err.message);
         setLoading(false);
       });
+    // Check auth
+    getToken().then((token) => setIsAuthenticated(!!token));
   }, [moodKey]);
 
   return (
@@ -63,38 +71,73 @@ const ResultsScreen = ({ route }) => {
             renderItem={({ item }) => {
               // Format duration from ms to mm:ss
               const formatDuration = (ms) => {
-                if (!ms && ms !== 0) return '';
+                if (!ms && ms !== 0) return "";
                 const totalSeconds = Math.floor(ms / 1000);
                 const minutes = Math.floor(totalSeconds / 60);
                 const seconds = totalSeconds % 60;
-                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                return `${minutes}:${seconds.toString().padStart(2, "0")}`;
               };
               return (
-                <TouchableOpacity
-                  style={styles.item}
-                  onPress={() =>
-                    Linking.openURL(
-                      item.url ||
-                        `https://open.spotify.com/track/${
-                          item.spotify_id || item.id
-                        }`
-                    )
-                  }
-                >
-                  <Text style={styles.trackTitle}>{item.title || item.name}</Text>
-                  <Text style={styles.artist}>
-                    {item.artist ||
-                      (item.artists
-                        ? item.artists.map((a) => a.name).join(", ")
-                        : "")}
-                  </Text>
-                  {item.album && (
-                    <Text style={styles.album}>Album: {item.album}</Text>
-                  )}
-                  {item.duration_ms !== undefined && (
-                    <Text style={styles.duration}>Duration: {formatDuration(item.duration_ms)}</Text>
-                  )}
-                </TouchableOpacity>
+                <View style={styles.songRow}>
+                  <TouchableOpacity
+                    style={[styles.item, { flex: 1 }]}
+                    onPress={() =>
+                      Linking.openURL(
+                        item.url ||
+                          `https://open.spotify.com/track/${
+                            item.spotify_id || item.id
+                          }`
+                      )
+                    }
+                  >
+                    <Text style={styles.trackTitle}>
+                      {item.title || item.name}
+                    </Text>
+                    <Text style={styles.artist}>
+                      {item.artist ||
+                        (item.artists
+                          ? item.artists.map((a) => a.name).join(", ")
+                          : "")}
+                    </Text>
+                    {item.album && (
+                      <Text style={styles.album}>Album: {item.album}</Text>
+                    )}
+                    {item.duration_ms !== undefined && (
+                      <Text style={styles.duration}>
+                        Duration: {formatDuration(item.duration_ms)}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => {
+                      if (!isAuthenticated) {
+                        Alert.alert(
+                          "Login Required",
+                          "You must be logged in to add songs to your playlists.",
+                          [
+                            { text: "Cancel", style: "cancel" },
+                            {
+                              text: "Login/Register",
+                              onPress: () => navigation.navigate("Login"),
+                            },
+                          ]
+                        );
+                        return;
+                      }
+                      setSelectedSong(item);
+                      setShowPlaylistModal(true);
+                    }}
+                  >
+                    <Text style={styles.addButtonText}>Add</Text>
+                  </TouchableOpacity>
+                  <PlaylistSelectModal
+                    visible={showPlaylistModal}
+                    onClose={() => setShowPlaylistModal(false)}
+                    onSelect={() => setShowPlaylistModal(false)}
+                    song={selectedSong}
+                  />
+                </View>
               );
             }}
             ListEmptyComponent={
@@ -135,14 +178,31 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
   },
+  songRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  addButton: {
+    backgroundColor: "#1DB954",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
   album: {
     fontSize: 13,
-    color: '#444',
+    color: "#444",
     marginTop: 2,
   },
   duration: {
     fontSize: 13,
-    color: '#888',
+    color: "#888",
     marginTop: 1,
   },
   trackTitle: {
@@ -161,17 +221,17 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   showMoreButton: {
-    backgroundColor: '#1DB954',
+    backgroundColor: "#1DB954",
     padding: 12,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 16,
-    alignSelf: 'center',
+    alignSelf: "center",
     minWidth: 120,
   },
   showMoreText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });
