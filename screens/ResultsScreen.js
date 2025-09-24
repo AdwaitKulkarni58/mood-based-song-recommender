@@ -79,7 +79,7 @@ const ResultsScreen = ({ route }) => {
             </TouchableOpacity>
           )}
           ListEmptyComponent={
-            <Text style={styles.placeholder}>No results for this mood.</Text>
+            <Text style={styles.placeholder}>No results for this mood</Text>
           }
         />
       )}
