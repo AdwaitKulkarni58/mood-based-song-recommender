@@ -16,10 +16,6 @@ const moods = [
 ];
 
 const HomeScreen = ({ navigation }) => {
-  const handleContinue = () => {
-    // Optionally, you can set a flag in navigation params or context to indicate guest mode
-    // For now, just allow navigation to mood selection as usual
-  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
