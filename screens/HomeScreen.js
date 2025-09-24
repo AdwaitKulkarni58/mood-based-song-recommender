@@ -25,6 +25,12 @@ const HomeScreen = ({ navigation }) => {
       >
         <Text style={styles.profileButtonText}>Go to Profile</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.profileButton, { backgroundColor: '#3A86FF', marginBottom: 16 }]}
+        onPress={() => navigation.navigate("Insights")}
+      >
+        <Text style={styles.profileButtonText}>View Insights</Text>
+      </TouchableOpacity>
       <View style={styles.divider} />
       <Divider theme={{ colors: { primary: "green" } }} />
       <MoodOptions moods={moods} navigation={navigation} />

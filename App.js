@@ -7,6 +7,8 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 
+import InsightsScreen from "./screens/InsightsScreen";
+
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -37,6 +39,11 @@ export default function App() {
           name="Profile"
           component={ProfileScreen}
           options={{ title: "Your Playlists" }}
+        />
+        <Stack.Screen
+          name="Insights"
+          component={InsightsScreen}
+          options={{ title: "Insights" }}
         />
       </Stack.Navigator>
     </NavigationContainer>

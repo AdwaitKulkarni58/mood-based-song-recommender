@@ -22,6 +22,8 @@ app.use(express.json());
 // Auth and playlist routes
 app.use("/api/auth", require("./auth"));
 app.use("/api/playlists", require("./playlists"));
+app.use("/api/interactions", require("./interactions"));
+app.use("/api/insights", require("./insights"));
 
 async function getSpotifyAppToken() {
   const clientId = process.env.SPOTIFY_CLIENT_ID;

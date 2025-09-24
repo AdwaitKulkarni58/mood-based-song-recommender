@@ -31,21 +31,39 @@ const ResultsScreen = ({ route, navigation }) => {
     setLoading(true);
     setError(null);
     setVisibleCount(10); // Reset pagination on mood change
+    let fetchedTracks = [];
     fetch(`${BACKEND_URL}/api/recommendations?mood=${moodKey}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch recommendations");
         return res.json();
       })
       .then((data) => {
-        setTracks(data.tracks || []);
+        fetchedTracks = data.tracks || [];
+        setTracks(fetchedTracks);
         setLoading(false);
+        // Log interaction if authenticated
+        getToken().then((token) => {
+          setIsAuthenticated(!!token);
+          if (token && moodKey && fetchedTracks.length > 0) {
+            // Log the first playlist name (for now, as a proxy)
+            fetch(`${BACKEND_URL}/api/interactions/log`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                mood: moodKey,
+                playlistName: fetchedTracks[0].album || "Unknown",
+              }),
+            });
+          }
+        });
       })
       .catch((err) => {
         setError(err.message);
         setLoading(false);
       });
-    // Check auth
-    getToken().then((token) => setIsAuthenticated(!!token));
   }, [moodKey]);
 
   return (
